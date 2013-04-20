@@ -1,2 +1,4 @@
 .bundle
 .bundler
+uploads/*.mid
+public/*.mid

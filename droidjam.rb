@@ -111,3 +111,27 @@ post '/bands/:id/leave' do |id|
 
   JSON.dump({status: "ok"})
 end
+
+put '/bands/:band_id/players/:id/:file.mid' do |band_id, id, file|
+  band = Band.find(band_id) or pass
+  band_player = band.players.find(id) or pass
+  File.open("uploads/#{band_id}-#{id}.mid", 'wb') do |f|
+    f.write(request.body.read)
+  end
+  band_player.has_uploaded = true
+  band_player.save
+
+  JSON.dump band_player.to_h
+end
+
+get '/bands/:id/session.mid' do |id|
+  band = Band.find(id) or pass
+  if File.exists?("public/#{id}.mid")
+    send_file("public/#{id}.mid")
+  elsif band.players.all?(&:has_uploaded)
+    `./midicat.rb public/#{id}.mid uploads/#{id}-*.mid`
+    send_file("public/#{id}.mid")
+  else
+    halt 204
+  end
+end
