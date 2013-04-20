@@ -4,6 +4,8 @@ require 'redis'
 require 'json'
 
 class Band < OpenStruct
+  DEFAULT_OPTIONS = {has_started: false, has_finished: false}
+
   def self.find(id)
     if json = $redis.get("band:#{id}")
       self.new(JSON.parse(json))
@@ -27,7 +29,7 @@ class Band < OpenStruct
   end
 
   def initialize(hash)
-    super(hash)
+    super(DEFAULT_OPTIONS.merge(hash))
     @includes = []
   end
 
