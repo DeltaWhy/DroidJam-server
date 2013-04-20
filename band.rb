@@ -26,9 +26,20 @@ class Band < OpenStruct
     keys.map{|key| self.new(JSON.parse($redis.get(key)))}
   end
 
+  def initialize(hash)
+    super(hash)
+    @includes = []
+  end
+
   def players
     self.id = SecureRandom.hex(10) if self.id == nil
     BandPlayers.new(self.id)
+  end
+
+  def includes(key)
+    raise KeyError unless key == :players
+    @includes << key
+    self
   end
 
   def save
@@ -38,5 +49,19 @@ class Band < OpenStruct
     end
     $redis.set("band:#{self.id}", JSON.dump(self.to_h))
     self
+  end
+
+  def to_h
+    merge_hash = {}
+    @includes.each do |k|
+      v = self.send(k)
+      if v.is_a? Enumerable
+        v = v.map(&:to_h)
+      elsif !v.is_a? Hash
+        v = v.to_h
+      end
+      merge_hash[k] = v
+    end
+    super.merge(merge_hash)
   end
 end

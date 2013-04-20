@@ -21,7 +21,7 @@ end
 
 get '/bands/:id' do |id|
   band = Band.find(id) or pass
-  JSON.dump band.to_h
+  JSON.dump band.includes(:players).to_h
 end
 
 post '/bands' do
