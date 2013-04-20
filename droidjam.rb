@@ -108,7 +108,7 @@ post '/bands/:id/join' do |id|
   player_id = JSON.parse(request.body.read).fetch('player_id')
   player = Player.find(player_id) or pass
 
-  band_player = band.players.create(id: player.id, name: player.name, instrument: nil, ready: false)
+  band_player = band.players.create(id: player.id, name: player.name, instrument: "keys", ready: false)
   JSON.dump band_player.to_h
 end
 

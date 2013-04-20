@@ -25,6 +25,7 @@ class Band < OpenStruct
 
   def self.all
     keys = $redis.keys("band:*")
+    keys.reject!{|k| k =~ /:player/}
     keys.map{|key| self.new(JSON.parse($redis.get(key)))}
   end
 
