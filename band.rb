@@ -26,6 +26,11 @@ class Band < OpenStruct
     keys.map{|key| self.new(JSON.parse($redis.get(key)))}
   end
 
+  def players
+    self.id = SecureRandom.hex(10) if self.id == nil
+    BandPlayers.new(self.id)
+  end
+
   def save
     self.id = SecureRandom.hex(10) if self.id == nil
     unless self.name
