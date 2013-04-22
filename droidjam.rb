@@ -16,7 +16,7 @@ get '/' do
 end
 
 get '/bands' do
-  JSON.dump Band.all.map(&:to_h)
+  JSON.dump Band.all.map{|b|b.includes(:players).to_h}
 end
 
 get '/bands/:id' do |id|
@@ -104,8 +104,9 @@ post '/bands/:id/start' do |id|
 end
 
 post '/bands/:id/join' do |id|
-  band = Band.find(id) or pass
   player_id = JSON.parse(request.body.read).fetch('player_id')
+  puts "#{player_id} joining #{id}"
+  band = Band.find(id) or pass
   player = Player.find(player_id) or pass
 
   band_player = band.players.create(id: player.id, name: player.name, instrument: "keys", ready: false)
@@ -113,37 +114,45 @@ post '/bands/:id/join' do |id|
 end
 
 post '/bands/:id/leave' do |id|
-  band = Band.find(id) or pass
   player_id = JSON.parse(request.body.read).fetch('player_id')
+  puts "#{player_id} joining #{id}"
+  band = Band.find(id) or pass
   band.players.destroy(player_id)
 
   JSON.dump({status: "ok"})
 end
 
 put '/bands/:band_id/players/:id/:file.mid' do |band_id, id, file|
+  puts "#{id} uploading file"
   band = Band.find(band_id) or pass
-  band_player = band.players.find(id) or pass
+  #band_player = band.players.find(id) or pass
+  puts "#{id} about to upload"
   File.open("uploads/#{band_id}-#{id}.mid", 'wb') do |f|
     f.write(request.body.read)
   end
-  band_player.has_uploaded = true
-  band_player.save
+  puts "#{id} uploaded"
+  #band_player.has_uploaded = true
+  #band_player.save
   
   if band.players.all?(&:has_uploaded)
     band.has_finished = true
   end
 
-  JSON.dump band_player.to_h
+  #puts band_player.to_h
+  puts band.includes(:players).to_h
+  #JSON.dump band_player.to_h
+  "blah"
 end
 
 get '/bands/:id/session.mid' do |id|
   band = Band.find(id) or pass
   if File.exists?("public/#{id}.mid")
     send_file("public/#{id}.mid")
-  elsif band.has_finished
+  #elsif band.has_finished
+  else
     `./midicat.rb public/#{id}.mid uploads/#{id}-*.mid`
     send_file("public/#{id}.mid")
-  else
-    halt 204
+  #else
+    #halt 204
   end
 end

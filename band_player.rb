@@ -21,7 +21,7 @@ class BandPlayers
 
   def destroy(id)
     $redis.del("band:#@band_id:player:#{id}")
-    @store.delete{|p| p.id == id}
+    @store.delete_if{|p| p.id == id}
   end
 
   def destroy_all
